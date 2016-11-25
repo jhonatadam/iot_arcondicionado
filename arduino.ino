@@ -97,12 +97,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }
 
 
-//void subscribe(String topico_sub){
-//  mqttClient.subscribe(topico_sub);
-//  
-//  
-//}
-
 
 
 void publishMessage( String sensorReading){
@@ -123,15 +117,15 @@ String readSensor(){
   voltage /= 1024.0; 
  
  // print out the voltage
- Serial.print(voltage); Serial.println(" volts");
+ //Serial.print(voltage); Serial.println(" volts");
  
  // now print out the temperaturesketh
  float cel = (voltage - 0.5) * 100 ;
-
-  String reading = "LDR: ";
-  reading = reading + ldr;
-  reading = reading + " - Temp: ";
-  reading = reading + cel;
+ String reading = String(cel);
+//  String reading = "LDR: ";
+//  reading = reading + ldr;
+//  reading = reading + " - Temp: ";
+//  reading = reading + cel;
   
   Serial.println( reading );
   return reading;
