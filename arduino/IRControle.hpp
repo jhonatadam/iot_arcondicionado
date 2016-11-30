@@ -3,7 +3,7 @@
 
 #include <IRremote.h>
 
-class IFControle () 
+class IRControle
 {
 public:
 	IRControle(
@@ -16,6 +16,8 @@ public:
 	void diminuir_temp();
 
 private:
+  IRsend irsend;
+
 	unsigned long ligar_codigo;
 	unsigned long desli_codigo;
 	unsigned long aumen_codigo;

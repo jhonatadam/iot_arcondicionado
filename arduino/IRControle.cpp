@@ -13,21 +13,21 @@ IRControle::IRControle(
 
 void IRControle::ligar()
 {
-
+  irsend.sendSony(this->ligar_codigo, this->nbits);
 }
 	
 void IRControle::desligar()
 {
-
+  irsend.sendSony(this->desli_codigo, this->nbits);
 }
 	
 void IRControle::aumentar_temp()
 {
-
+  irsend.sendSony(this->aumen_codigo, this->nbits);
 }
 	
 void IRControle::diminuir_temp()
 {
-
+  irsend.sendSony(this->dimin_codigo, this->nbits);
 }
 

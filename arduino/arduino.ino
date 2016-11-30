@@ -1,4 +1,3 @@
-
 #include <PubSubClient.h>
 
 #include <Dhcp.h>
@@ -10,24 +9,39 @@
 
 #include <SPI.h>
 
-byte mac[] = {
-  0xf0,0x4d,0xa2,0xe4,0xc7,0x65
-};
-
-EthernetClient client;
+#include "IRControle.hpp"
 
 byte willQoS = 0;
-const char* topico_sensor = "quixada/sensor/temp1";
+
 boolean retain = false;
 boolean connectedEthernet = false;
 boolean connectedBroker = false;
-const char* server = "200.129.39.184";
+
 int LDR = 0;
 int TEMP = 1;
+
 char message_buff[100];
-PubSubClient mqttClient( client );
+
+byte mac[] = {0xf0,0x4d,0xa2,0xe4,0xc7,0x65};
+const char* topico_sensor = "quixada/sensor/temp1";
+const char* server = "200.129.39.184";
+EthernetClient client;
+PubSubClient mqttClient(client);
+
+IRControle irc(0,0,0,0,32);
 
 //PubSubClient mqttClient;
+
+
+void callback(char* topic, byte* payload, unsigned int length);
+
+void publishMessage( String sensorReading);
+
+String readSensor();
+
+void printIPAddress();
+
+void connectEthernet();
 
 
 void setup() {
@@ -81,6 +95,7 @@ void loop() {
 mqttClient.loop();
 }
 
+
 void callback(char* topic, byte* payload, unsigned int length) {
 
   int i = 0;
@@ -93,13 +108,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   String msgString = String(message_buff);
   Serial.println(msgString);
   
-  
 }
 
 
-
-
-void publishMessage( String sensorReading){
+void publishMessage( String sensorReading) {
   
   int str_len = sensorReading.length() + 1; 
   char message[str_len];
@@ -109,7 +121,8 @@ void publishMessage( String sensorReading){
   
 }
 
-String readSensor(){
+
+String readSensor() {
   int ldr = analogRead( LDR );
   int temp = analogRead( TEMP );
 
@@ -131,7 +144,23 @@ String readSensor(){
   return reading;
   
 }
-void connectEthernet(){
+
+
+void printIPAddress() {
+  Serial.print("My IP address: ");
+  for (byte thisByte = 0; thisByte < 4; thisByte++) {
+    // print the value of each byte of the IP address:
+    Serial.print(Ethernet.localIP()[thisByte], DEC);
+    Serial.print(".");
+  }
+
+  Serial.println();
+  connectedEthernet = true;
+  
+}
+
+
+void connectEthernet() {
   
   switch ( Ethernet.maintain() )
   {
@@ -171,18 +200,4 @@ void connectEthernet(){
       break;
 
   }  
-}
-
-void printIPAddress()
-{
-  Serial.print("My IP address: ");
-  for (byte thisByte = 0; thisByte < 4; thisByte++) {
-    // print the value of each byte of the IP address:
-    Serial.print(Ethernet.localIP()[thisByte], DEC);
-    Serial.print(".");
-  }
-
-  Serial.println();
-  connectedEthernet = true;
-  
 }
