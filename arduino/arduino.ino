@@ -8,6 +8,7 @@
 #include <EthernetUdp.h>
 
 #include <SPI.h>
+#include <ctype.h>
 
 #include "IRControle.hpp"
 
@@ -18,17 +19,19 @@ boolean connectedEthernet = false;
 boolean connectedBroker = false;
 
 int LDR = 0;
-int TEMP = 1;
+int TEMP = A0;
 
 char message_buff[100];
 
+const char* topico_sensor = "iot/sensor/temp1";
+const char* topico_control = "iot/control";
+
 byte mac[] = {0xf0,0x4d,0xa2,0xe4,0xc7,0x65};
-const char* topico_sensor = "quixada/sensor/temp1";
-const char* server = "200.129.39.184";
+const char* server = "192.168.1.100";
 EthernetClient client;
 PubSubClient mqttClient(client);
 
-IRControle irc(0,0,0,0,32);
+IRControle irc;
 
 //PubSubClient mqttClient;
 
@@ -43,12 +46,14 @@ void printIPAddress();
 
 void connectEthernet();
 
+boolean isValidNumber(String str);
+
 
 void setup() {
-  
+
   Serial.println( "Starting Arduino..." );
   pinMode( LDR, INPUT );
-  pinMode( TEMP, INPUT );
+//  pinMode( TEMP, INPUT );
   
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
@@ -70,29 +75,28 @@ void setup() {
 }
 
 void loop() {
-
-  Serial.println( "Starting Arduino..." );
+//  Serial.println( "Starting Arduino..." );
   connectEthernet();  
-
+  
   if( connectedEthernet ){
-
+  
       if( !connectedBroker ){
-          Serial.println( "Connecting to broker..." );
+//          Serial.println( "Connecting to broker..." );
           mqttClient.setServer(server, 1883);
           connectedBroker = mqttClient.connect("myClientID");
       } 
    }
-
+  
    if( connectedBroker ){
-      Serial.println( "Reading sensor..." );
+//      Serial.println( "Reading sensor..." );
       String sensor = readSensor();
-      publishMessage( sensor );
-      mqttClient.subscribe("quixada/setup");
+      publishMessage(sensor);
+      mqttClient.subscribe(topico_control);
     }
 
-    delay( 500 );
+  delay(500);
     
-mqttClient.loop();
+  mqttClient.loop();
 }
 
 
@@ -105,14 +109,32 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   message_buff[i] = '\0';
   
-  String msgString = String(message_buff);
-  Serial.println(msgString);
+  String msg = String(message_buff);
+  Serial.println(msg);
+
+  if (msg.equals("l")) {
+    irc.ligar();
+  } else if (msg.equals("d")) {
+    irc.desligar();
+  } else if (isValidNumber(msg)) {
+    int arg = msg.toInt();
+    irc.alt_temp(arg);
+  } else {
+    Serial.println("Msg invalida.");
+  }
   
 }
 
+boolean isValidNumber(String str){
+   for(byte i=0;i<str.length();i++)
+   {
+      if(isDigit(str.charAt(i))) return true;
+        }
+   return false;
+} 
+
 
 void publishMessage( String sensorReading) {
-  
   int str_len = sensorReading.length() + 1; 
   char message[str_len];
   sensorReading.toCharArray( message, str_len );
@@ -123,26 +145,21 @@ void publishMessage( String sensorReading) {
 
 
 String readSensor() {
-  int ldr = analogRead( LDR );
-  int temp = analogRead( TEMP );
+//  float cel = ( float((analogRead( TEMP ))*5)/1023);
+//  float temp = analogRead(TEMP);
+//  float voltage = temp * 5.0;
+//  voltage /= 1024.0; 
+//  
+//  float cel = (voltage - 0.5) * 100 ;
+//  
+//  
+//  Serial.println(reading);
 
-  float voltage = temp * 5.0;
-  voltage /= 1024.0; 
- 
- // print out the voltage
- //Serial.print(voltage); Serial.println(" volts");
- 
- // now print out the temperaturesketh
- float cel = (voltage - 0.5) * 100 ;
- String reading = String(cel);
-//  String reading = "LDR: ";
-//  reading = reading + ldr;
-//  reading = reading + " - Temp: ";
-//  reading = reading + cel;
+  int reading = analogRead(TEMP);
+  float cel = reading / 9.31;
+  String cel_str = String(cel);
   
-  Serial.println( reading );
-  return reading;
-  
+  return cel_str;
 }
 
 

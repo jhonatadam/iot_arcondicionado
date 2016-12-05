@@ -1,33 +1,51 @@
 #include "IRControle.hpp"
 
-IRControle::IRControle(
-		unsigned long ligar_codigo, unsigned long desli_codigo, 
-		unsigned long aumen_codigo, unsigned long dimin_codigo, int nbits)
+IRControle::IRControle()
 {
-	this->ligar_codigo = ligar_codigo;
-	this->desli_codigo = desli_codigo;
-	this->aumen_codigo = aumen_codigo;
-	this->dimin_codigo = dimin_codigo;
-	this->nbits        =        nbits;
+  
 }
 
 void IRControle::ligar()
 {
-  irsend.sendSony(this->ligar_codigo, this->nbits);
+  this->env_cod(this->ligar_cod);
 }
 	
 void IRControle::desligar()
 {
-  irsend.sendSony(this->desli_codigo, this->nbits);
+  this->env_cod(this->desli_cod);
 }
 	
-void IRControle::aumentar_temp()
+void IRControle::alt_temp(int temp)
 {
-  irsend.sendSony(this->aumen_codigo, this->nbits);
+  if ((temp < min_temp) || (temp > max_temp))
+  {
+    return;
+  }
+  
+  int i = temp - min_temp;
+  this->env_cod(temp_cod[i]);
 }
 	
-void IRControle::diminuir_temp()
+void IRControle::env_cod(unsigned long cod)
 {
-  irsend.sendSony(this->dimin_codigo, this->nbits);
+//  Serial.println(cod);
+//  irsend.sendNEC(cod, this->nbits);
+//  for (int i = 0; i < 3; i++) {
+//    irsend.sendRC5(cod, this->nbits);
+//    delay(200);
+//    irsend.sendRC6(cod, this->nbits);
+//    delay(200);
+//    irsend.sendNEC(cod,this->nbits);
+//    delay(200);
+//  }
+   for (int i = 0; i < 3; i++) {
+    irsend.sendRC5(cod + 0x7FFFC00, 32);
+    delay(200);
+    irsend.sendRC6(cod + 0x7FFFC00, 32);
+    delay(200);
+    irsend.sendNEC(cod + 0x7FFFC00, 32);
+    delay(200);
+  }
+  delay(1000);
 }
 
